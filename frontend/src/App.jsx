@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import Editor from '@monaco-editor/react'
 import { Send, Code, MessageSquare, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
-const WS_URL = 'ws://localhost:8000/ws'
-console.log('WS_URL is:', WS_URL)
+const WS_URL = 'wss://interview-prep-ai-y1f6.onrender.com/ws'
 
 function App() {
   const [sessionId] = useState(() => `session-${Date.now()}`)
