@@ -8,27 +8,14 @@
 
 ---
 
-## 🚀 Why This Project Exists
+## Why This Project Exists
 
-Most interview prep platforms teach you **how to code**. This teaches you **how to interview**.
+Most SWE interview prep platforms teach **how to code**. This teaches **how to interview**.
+LeetCode and similar platforms focus solely on coding ability, but research shows that most candidates fail technical interviews due to **poor communication**, not incorrect code. This is an AI-powered coach that evaluates both your code AND how well you explain it—simulating real interview conditions.
 
-**The Problem:** LeetCode and similar platforms focus solely on coding ability, but research shows that most candidates fail technical interviews due to **poor communication**, not incorrect code. You can have the right solution but still get rejected if you can't explain your thinking clearly.
+___
 
-**The Solution:** An AI-powered coach that evaluates both your code AND how well you explain it—simulating real interview conditions.
-
----
-
-## ✨ Key Features
-
-- **Dual Feedback System**: Technical correctness + Communication quality
-- **Real-time Analysis**: WebSocket-based instant AI responses
-- **Professional Code Editor**: Monaco Editor (VS Code engine) with syntax highlighting
-- **Interview Simulation**: Multi-stage flow (Problem → Approach → Code → Feedback)
-- **AI-Powered Insights**: Complexity analysis, best practices, follow-up questions
-
----
-
-## 🏗️ Technical Architecture
+##  Technical Architecture
 ```
 ┌─────────────┐      WebSocket       ┌──────────────┐
 │   React     │◄────────────────────►│   FastAPI    │
@@ -49,70 +36,7 @@ Most interview prep platforms teach you **how to code**. This teaches you **how 
 - **AI**: OpenAI GPT-3.5-turbo with custom prompt engineering
 - **Deployment-Ready**: Configured for Vercel (frontend) and Railway (backend)
 
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Python 3.11+
-- Node.js 18+
-- OpenAI API key ([get one here](https://platform.openai.com/api-keys))
-
-### Installation
-
-**1. Clone the Repository:**
-```bash
-git clone https://github.com/abdoulousseini2028-droid/interview-prep-ai.git
-cd interview-prep-ai
-```
-
-**2. Backend Setup:**
-```bash
-cd backend
-
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-source venv/bin/activate  # Mac/Linux
-# OR
-venv\Scripts\activate     # Windows
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up environment variable
-# Mac/Linux:
-export OPENAI_API_KEY="your_api_key_here"
-# Windows PowerShell:
-$env:OPENAI_API_KEY="your_api_key_here"
-
-# Start backend server
-python main.py
-```
-
-Server will run on: `http://127.0.0.1:8000`
-
-**3. Frontend Setup (New Terminal):**
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-Frontend will run on: `http://localhost:5173`
-
-**4. Open Application:**
-
-Navigate to `http://localhost:5173` in your browser.
-
----
-
-## 💡 How It Works
+##  How It Works
 
 ### User Flow:
 1. **Describe Problem**: User inputs a coding challenge
@@ -131,7 +55,7 @@ Navigate to `http://localhost:5173` in your browser.
 
 ## 🔐 API Key Setup & Cost Information
 
-This project uses the **OpenAI API** which requires an API key and has associated costs.
+This project uses the **OpenAI API** which requires an API key and has associated costs. For the current version, the user has to pay for an OpenAI API to get the proper AI response. Without it, he would run into an error. 
 
 ### Getting Your API Key:
 
@@ -199,16 +123,6 @@ To switch APIs, modify the client initialization in `backend/main.py`.
 
 *The architecture is designed to be LLM-agnostic, so it could easily be adapted to use other providers like Anthropic Claude or Google Gemini depending on cost/performance requirements. For a production deployment, I'd implement API key management, rate limiting, usage analytics, and potentially a freemium model where users get X free sessions before upgrading."*
 
----
-
-## 📊 Project Highlights
-
-**What Makes This Different:**
-- ❌ Not a LeetCode clone (they don't teach communication)
-- ❌ Not a generic chatbot (purpose-built for interviews)
-- ✅ Simulates real interview conditions
-- ✅ Dual evaluation system (unique approach)
-- ✅ Production-ready architecture
 
 **Skills Demonstrated:**
 - Full-stack development (React + Python)
@@ -235,38 +149,7 @@ To switch APIs, modify the client initialization in `backend/main.py`.
 - [ ] Export interview transcripts as PDF
 
 ---
-
-## 🚢 Deployment
-
-### Frontend (Vercel):
-
-1. Push code to GitHub
-2. Import project at [vercel.com](https://vercel.com)
-3. Framework: Vite
-4. Root directory: `frontend`
-5. Build command: `npm run build`
-6. Output directory: `dist`
-7. Deploy!
-
-### Backend (Railway):
-
-1. Create new project at [railway.app](https://railway.app)
-2. Connect GitHub repository
-3. Root directory: `backend`
-4. Add environment variable: `OPENAI_API_KEY=your_key`
-5. Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-6. Deploy!
-
-**Update Frontend API URL:**
-
-After deploying backend, update `frontend/src/App.jsx`:
-```javascript
-const WS_URL = 'ws://your-backend-url.railway.app/ws'
-```
-
----
-
-## 🐛 Troubleshooting
+**Common Problems**
 
 ### "Module 'openai' not found"
 ```bash
@@ -297,19 +180,6 @@ npm run dev
 
 ---
 
-## 📝 License
-
-MIT License - feel free to fork and build upon this project.
-
----
-
-## 🙏 Acknowledgments
-
-- **OpenAI** for GPT-3.5 API enabling intelligent code analysis
-- **Monaco Editor** (Microsoft) for professional code editing experience
-- **FastAPI** for elegant async Python web framework
-- **React** and **Vite** for modern frontend development
-
 ---
 
 ## 👤 Author
@@ -324,12 +194,9 @@ MIT License - feel free to fork and build upon this project.
 ## 📈 Project Stats
 
 - **Lines of Code**: ~1,200+
-- **Development Time**: 10 hours (following agile sprint methodology)
 - **Technologies**: 8+ (React, FastAPI, OpenAI, WebSocket, etc.)
 - **API Integrations**: 1 (OpenAI GPT-3.5)
 
 ---
 
 **Built to demonstrate modern full-stack development, AI integration, and product thinking.**
-
-*If this project helped you prepare for interviews, give it a ⭐ on GitHub!*
