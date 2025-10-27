@@ -24,10 +24,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # Initialize OpenAI client
-client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY")
-)
-
+# Initialize OpenAI client (optional - will return friendly error if not set)
+try:
+    client = OpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY", "dummy-key-for-demo")
+    )
+except Exception:
+    client = None
 # In-memory session storage (use DB in production)
 sessions: Dict[str, Dict] = {}
 
