@@ -14,12 +14,15 @@ app = FastAPI(title="AI Interview Prep API")
 # CORS middleware for frontend connection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://interview-prep-ai-delta.vercel.app",
+        "https://*.vercel.app"  # Allow all Vercel preview deployments
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # Initialize OpenAI client
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY")
