@@ -1,11 +1,11 @@
-# ⚡ QUICK COMMANDS - OpenAI Version
+# QUICK COMMANDS - OpenAI Version
 
 ## 🔑 Get API Key First!
 https://platform.openai.com/api-keys
 
 ---
 
-## 🚀 Setup (Run Once)
+## Setup (Run Once)
 
 ```bash
 # Backend
@@ -41,25 +41,25 @@ npm run dev
 
 ---
 
-## 🌐 Open App
+## Open App
 
 http://localhost:5173
 
 ---
 
-## 🛑 Stop
+##  Stop
 
 Press `Ctrl+C` in both terminals
 
 ---
 
-## 🔄 Restart
+##  Restart
 
 Just run the "Start Backend" and "Start Frontend" commands again!
 
 ---
 
-## ✅ Test Problem
+## Test Problem
 
 **Problem:**
 ```
@@ -80,4 +80,4 @@ def two_sum(nums, target):
 
 ---
 
-That's it! 🎉
+That's it!
