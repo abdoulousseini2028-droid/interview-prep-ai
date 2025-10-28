@@ -32,7 +32,7 @@ Most candidates fail technical interviews not because their code is wrong - they
 -  Communication clarity
 - Problem-solving process
 
-This beta-version of InterviewPrep AI evaluates **both** - just like a real interviewer would.
+This beta-version of InterviewPrep AI (with loaded API credits) evaluates **both** - just like a real interviewer would.
 
 ---
 
