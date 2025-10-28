@@ -23,7 +23,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# Initialize OpenAI client
+
 # Initialize OpenAI client (optional - will return friendly error if not set)
 try:
     client = OpenAI(
@@ -31,6 +31,7 @@ try:
     )
 except Exception:
     client = None
+
 # In-memory session storage (use DB in production)
 sessions: Dict[str, Dict] = {}
 
@@ -47,10 +48,31 @@ class FeedbackResponse(BaseModel):
     suggestions: List[str]
     complexity_analysis: str
     score: int
+
+
 def analyze_code_with_ai(code: str, language: str, problem: str, conversation_history: List[Dict]) -> Dict:
     """
     Analyze code using OpenAI GPT-3.5 for technical correctness and complexity
     """
+    if client is None:
+        return {
+            "technical_feedback": """Hi! I'm the AI interview coach, but I'm currently unable to analyze your code. 
+
+Here's why: This demo uses OpenAI's API which costs about $0.03 per analysis. Since this is a portfolio project displayed publicly, the creator (Abdoul) hasn't loaded API credits to avoid unexpected charges from random traffic.
+
+**But your code looks good!** I can see you're thinking about the problem. The app itself works perfectly - the WebSocket connection, code editor, and full interview flow are all production-ready.
+
+**Want to see me actually work?** 
+- Contact Abdoul at ousseiniabdoulrahim1@gmail.com for a live demo
+- Or clone the repo and add your own OpenAI API key (new accounts get $5 free credits!)
+
+This demonstrates real-world thinking about cost management in production deployments. In a real product, there would be user authentication, usage limits, and payment processing.""",
+            "complexity_analysis": "Unable to analyze without API access",
+            "code_quality": "Unable to analyze without API access",
+            "follow_up_question": "Want to see this working? Reach out to the developer!",
+            "score": 0
+        }
+    
     system_prompt = """You are an expert technical interviewer at a top tech company. 
     Your role is to:
     1. Analyze code for correctness, efficiency, and best practices
@@ -116,27 +138,15 @@ def analyze_code_with_ai(code: str, language: str, problem: str, conversation_hi
                 "score": 7
             }
     except Exception as e:
-        # Return friendly error message as if it's from the AI
         return {
-            "technical_feedback": """Hi! I'm the AI interview coach, but I'm currently unable to analyze your code. 
-
-Here's why: This demo uses OpenAI's API which costs about $0.03 per analysis. Since this is a portfolio project displayed publicly, the creator (Abdoul) hasn't loaded API credits to avoid unexpected charges from random traffic. After loading API credits, I would work perfectly.
-
-**But your code looks good!** I can see you're thinking about the problem. The app itself works perfectly - the WebSocket connection, code editor, and full interview flow are all production-ready.
-
-**Want to see me actually work?** 
-- Contact Abdoul at ousseiniabdoulrahim1@gmail.com for a live demo
-- Or clone the repo and add your own OpenAI API key (free $5 credits for new accounts!)
-
-This demonstrates real-world thinking about cost management in production deployments. In a real product, there would be user authentication, usage limits, and payment processing.""",
-            "complexity_analysis": "Unable to analyze without API access",
-            "code_quality": "Unable to analyze without API access",
-            "follow_up_question": "Want to see this working? Reach out to the developer!",
+            "technical_feedback": "An error occurred while analyzing. Please try again.",
+            "complexity_analysis": "Unable to analyze",
+            "code_quality": "Unable to analyze",
+            "follow_up_question": "Can you try again?",
             "score": 0
         }
- 
+
     
- 
 @app.get("/")
 async def root():
     return {
@@ -209,16 +219,29 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 })
                 
                 # AI provides feedback on approach
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a supportive technical interviewer. Provide brief feedback on the candidate's approach and encourage them to start coding."},
-                        *session["conversation_history"]
-                    ],
-                    max_tokens=500
-                )
+                if client is None:
+                    ai_message = """Thanks for sharing your approach! 
+
+Unfortunately, I can't provide AI-powered feedback right now because this demo doesn't have OpenAI API credits loaded (to avoid unexpected costs from public traffic).
+
+However, feel free to continue to the coding phase! The code editor and full interview flow work perfectly. When you submit your code, you'll see a detailed explanation of why the AI analysis isn't available.
+
+Want to see the full AI feedback working? Contact Abdoul at ousseiniabdoulrahim1@gmail.com or clone the repo and add your own API key!"""
+                else:
+                    try:
+                        response = client.chat.completions.create(
+                            model="gpt-3.5-turbo",
+                            messages=[
+                                {"role": "system", "content": "You are a supportive technical interviewer. Provide brief feedback on the candidate's approach and encourage them to start coding."},
+                                *session["conversation_history"]
+                            ],
+                            max_tokens=500
+                        )
+                        
+                        ai_message = response.choices[0].message.content
+                    except Exception as e:
+                        ai_message = """Thanks for sharing your approach! An error occurred while getting AI feedback. Please continue to the coding phase!"""
                 
-                ai_message = response.choices[0].message.content
                 session["conversation_history"].append({
                     "role": "assistant",
                     "content": ai_message
@@ -287,16 +310,23 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                     "content": user_message
                 })
                 
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful technical interviewer. Keep responses concise and encouraging."},
-                        *session["conversation_history"]
-                    ],
-                    max_tokens=500
-                )
+                if client is None:
+                    ai_message = """Thanks for your message! Unfortunately, AI responses aren't available in this demo without API credits. Feel free to continue with the interview flow!"""
+                else:
+                    try:
+                        response = client.chat.completions.create(
+                            model="gpt-3.5-turbo",
+                            messages=[
+                                {"role": "system", "content": "You are a helpful technical interviewer. Keep responses concise and encouraging."},
+                                *session["conversation_history"]
+                            ],
+                            max_tokens=500
+                        )
+                        
+                        ai_message = response.choices[0].message.content
+                    except Exception as e:
+                        ai_message = """Thanks for your message! An error occurred. Please continue with the interview!"""
                 
-                ai_message = response.choices[0].message.content
                 session["conversation_history"].append({
                     "role": "assistant",
                     "content": ai_message
@@ -309,34 +339,9 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 })
             
             elif message_type == "end_session":
-                # Generate session summary
-                summary_prompt = f"""
-                Based on this interview session, provide a concise summary:
-                
-                Problem: {session.get('problem', 'N/A')}
-                Code submissions: {len(session['code_submissions'])}
-                
-                Provide:
-                1. Overall performance assessment (2-3 sentences)
-                2. Key strengths (2 bullet points)
-                3. Areas for improvement (2 bullet points)
-                4. Next steps for practice
-                
-                Keep it encouraging and actionable.
-                """
-                
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=session["conversation_history"] + [{
-                        "role": "user",
-                        "content": summary_prompt
-                    }],
-                    max_tokens=800
-                )
-                
                 await websocket.send_json({
                     "type": "session_summary",
-                    "summary": response.choices[0].message.content,
+                    "summary": "Session ended. Thank you for practicing!",
                     "session_data": {
                         "duration": "session duration",
                         "submissions": len(session['code_submissions']),
