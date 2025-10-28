@@ -1,6 +1,5 @@
 # System Architecture
 
-## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -385,9 +384,9 @@ Scaled (Production):
 ---
 
 This architecture enables:
-- ✅ Real-time feedback (WebSocket)
-- ✅ Scalable backend (async Python)
-- ✅ Modern UI (React + Monaco)
-- ✅ Easy deployment (separate services)
-- ✅ Cost-effective hosting (~$15/mo)
-- ✅ Future extensibility (modular design)
+- Real-time feedback (WebSocket)
+- Scalable backend (async Python)
+- Modern UI (React + Monaco)
+- Easy deployment (separate services)
+- Cost-effective hosting (~$15/mo)
+- Future extensibility (modular design)
