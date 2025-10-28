@@ -19,7 +19,7 @@
 3. **Write your code** - Use the professional Monaco editor (VS Code's engine)
 4. **Get feedback** - See why the AI can't analyze... yet!
 
-Note: As a student portfolio project, for financial reason, I could not to load API credits for the public demo to avoid unexpected costs from random traffic. I still highly recommend you try it. Click the Launch App link above before reading further. 
+Note: As a student portfolio project (so far), I didn't not load API credits for the public demo to avoid unexpected costs from random traffic. I still highly recommend you try it. Click the Launch App link above before reading any further further. You'll see what I am talking about after going through step 4. Thanks.
 
 ##  What Problem Does This Solve?
 
