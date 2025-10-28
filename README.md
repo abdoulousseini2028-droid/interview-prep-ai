@@ -19,7 +19,7 @@
 3. **Write your code** - Use the professional Monaco editor (VS Code's engine)
 4. **Get feedback** - See why the AI can't analyze... yet!
 
-Note: As a student portfolio project (so far), I didn't not load API credits for the public demo to avoid unexpected costs from random traffic. I'd still highly appreciate if you interact with it. Click the Launch App link above before reading any further. It's just 4 simple steps.
+Note: As a student portfolio project (so far), I didn't not load API credits for the public demo to avoid unexpected costs from random traffic. I'd still highly appreciate if you interact with it. Click the Launch App link above before reading any further. It's just 4 simple steps. Because of the lack of API credits, you'll get a friendly error message describing what I've just said here, after STEP 4. How it fully work if you clone it and run locally with your own OpenAI API key
 
 ##  What Problem Does This Solve?
 
@@ -35,10 +35,6 @@ Most candidates fail technical interviews not because their code is wrong - they
 This beta-version of InterviewPrep AI (with loaded API credits) evaluates **both** - just like a real interviewer would.
 
 ---
-
-## Run It Yourself (See the AI Actually Work!)
-
-Want to experience the full AI-powered feedback? Clone and run locally with your own OpenAI API key:
 
 ### Quick Start (5 minutes):
 
