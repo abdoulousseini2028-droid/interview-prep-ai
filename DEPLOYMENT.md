@@ -204,8 +204,4 @@ tar -czf backup-$(date +%Y%m%d).tar.gz sessions/
 
 # Backup to S3
 aws s3 cp backup-*.tar.gz s3://your-bucket/backups/
-```
-
----
-
-**Ready to deploy?** Start with Vercel + Railway for easiest setup!
+``
