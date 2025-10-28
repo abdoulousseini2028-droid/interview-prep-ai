@@ -1,4 +1,4 @@
-# 🎯 AI Interview Prep Platform
+# AI Interview Prep Platform
 
 **👉 [Try the Live Demo](https://interview-prep-ai-delta.vercel.app)** - Click and start practicing immediately!
 
@@ -10,7 +10,7 @@
 
 ---
 
-## 🎮 Try It Now
+## Try It Now
 
 **[Launch the app →](https://interview-prep-ai-delta.vercel.app)**
 
