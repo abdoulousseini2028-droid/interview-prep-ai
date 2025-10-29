@@ -23,14 +23,9 @@ Note: As a student portfolio project (so far), I didn't not load API credits for
 
 ##  What Problem Does This Solve?
 
-**LeetCode teaches you how to code. This teaches you how to interview.**
+**LeetCode teaches how to code. This teaches you how to interview.**
 
-Most candidates fail technical interviews not because their code is wrong - they fail because they can't explain their thinking clearly. You can have the perfect solution but still get rejected if you can't communicate your approach.
-
-**The gap:** Existing platforms focus solely on coding ability, but real interviews evaluate:
--  Technical correctness
--  Communication clarity
-- Problem-solving process
+Most candidates fail technical interviews not because their code is wrong, they fail because they can't explain their thinking clearly. In fact the best leedcoders use pen/pencil and paper to describe their problem-solving strategy before writing any a line of code. My AI has that pen and paper integrated in it. It trains coders to be able to effectively explain their codes in a coding interview, not just write it.
 
 This beta-version of InterviewPrep AI (with loaded API credits) evaluates **both** - just like a real interviewer would.
 
@@ -124,16 +119,6 @@ Open `http://localhost:5173` and experience the full AI-powered interview coach!
 
 As a student portfolio project, for financial reason, I could not to load API credits for the public demo to avoid unexpected costs from random traffic. 
 
-### Technical Skills 
-
-- Full-Stack Development - React frontend + Python backend
-- Real-Time Communication - WebSocket bidirectional data flow
-- AI Integration - OpenAI API with custom prompt engineering
-- Async Programming - FastAPI async/await patterns
-- Modern Tooling - Vite, Tailwind CSS, Monaco Editor
--  Error Handling - Graceful failures and user feedback
--  Security - Environment variables, .gitignore best practices
--  Deployment - Production-ready on Vercel and Render
 
 ---
 
@@ -142,7 +127,7 @@ As a student portfolio project, for financial reason, I could not to load API cr
 - [ ] User authentication and profiles
 - [ ] Video/audio recording of practice sessions
 - [ ] Company-specific interview prep modes (Google, Meta, Amazon style)
-- [ ] Mock interview scheduling with live AI interviewer
+- [ ] Mock interview schedulin with live AI interviewer
 
 
 ---
@@ -236,10 +221,3 @@ Buffett Scholar (< 0.5% acceptance rate)
 
 - **[Expense Splitter](https://github.com/abdoulousseini2028-droid/expense-splitter)** - Real-time expense tracking with Supabase
 - **[Superstore Sales Analysis](https://github.com/abdoulousseini2028-droid/superstore-sales-analysis)** - SQL-based retail data analysis
----
-
-**Built to demonstrate modern full-stack development, AI integration, and production-level thinking.**
-
-**Questions or want to see it working with full AI?** Reach out!
-
-*⭐ Star this repo if you found it interesting or helpful!*
