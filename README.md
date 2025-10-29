@@ -25,7 +25,7 @@ Note: As a student portfolio project (so far), I didn't not load API credits for
 
 **LeetCode teaches how to code. This teaches you how to interview.**
 
-Most candidates fail technical interviews not because their code is wrong, they fail because they can't explain their thinking clearly. In fact the best leedcoders use pen/pencil and paper to describe their problem-solving strategy before writing any line of code. This AI has that pen and paper integrated in it. It trains coders to be able to effectively explain their codes in a coding interview, not just write it.
+Some of the best leedcoders I know, use pen/pencil and paper to write a problem-solving strategy before writing any actual line of code. This AI has that pen/pencil and paper integrated in it. It trains coders to be able to effectively explain their codes, it does that through the "explain your strategy feature." At the end, it gives feedback both on the code but also how you communicated your strategy before writing the code. 
 
 This beta-version of InterviewPrep AI (with loaded API credits) evaluates **both** - just like a real interviewer would.
 
