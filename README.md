@@ -25,9 +25,8 @@ Note: As a student portfolio project (so far), I didn't not load API credits for
 
 **LeetCode teaches how to code. This teaches you how to interview.**
 
-Some of the best leedcoders I know, use pen/pencil and paper to write a problem-solving strategy before writing any actual line of code. This AI has that pen/pencil and paper integrated in it. It trains coders to be able to effectively explain their codes, it does that through the "explain your strategy feature." At the end, it gives feedback both on the code but also how you communicated your strategy before writing the code. 
+Some of the best leedcoders I know use pen (or pencil) and paper to design a strategy before writing any actual line of code for a leetcode problem. This beta-version of InterviewPrep AI (with loaded API credits) has that pen/pencil and paper integrated in it. It trains coders who struggle with explaining their code to become more confident in their "communication" abilities, to pass technical interviews. It does that through the "explain your strategy feature." At the end, it gives feedback both on the code but also how you communicated your strategy before writing the code. 
 
-This beta-version of InterviewPrep AI (with loaded API credits) evaluates **both** - just like a real interviewer would.
 
 ---
 
