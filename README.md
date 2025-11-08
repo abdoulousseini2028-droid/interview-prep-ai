@@ -12,6 +12,10 @@
 
 ## Try It Now
 
+Important: To avoid unexpected costs, the public demo does not have active API credits. As this is currently a student portfolio project, you’ll receive a friendly message about missing API credits after completing the app’s steps.
+
+I still encourage you to interact with the demo to understand its intended workflow and share your feedback. For a fully working experience, simply clone the repo and run it locally using your own OpenAI API key.
+
 **[Launch the app →](https://interview-prep-ai-delta.vercel.app)**
 
 1. **Enter a coding problem** - Try: "Find two numbers in an array that sum to a target"
@@ -19,7 +23,6 @@
 3. **Write your code** - Use the professional Monaco editor (VS Code's engine)
 4. **Get feedback** - See why the AI can't analyze... yet!
 
-Note: As a student portfolio project (so far), I didn't not load API credits for the public demo to avoid unexpected costs from random traffic. I'd still highly appreciate if you interact with it to get an idea of what the AI is supposed to do (and for feedback). Click "Launch the App" link above before reading any further, and follow step 1 through 4. However because of the lack of API credits, you'll get a friendly error message describing what I've just said here, after STEP 4. However it fully work if you clone it and run locally with your own OpenAI API key
 
 ##  What Problem Does This Solve?
 
