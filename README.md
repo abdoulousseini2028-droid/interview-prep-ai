@@ -1,5 +1,9 @@
 # AI Interview Prep Platform
 
+Important: To avoid unexpected costs, the public demo does not have active API credits. As this is currently a student portfolio project, you’ll receive a friendly message about missing API credits after completing the app’s steps.
+
+I still encourage you to interact with the demo to understand its intended workflow and share your feedback. For a fully working experience, simply clone the repo and run it locally using your own OpenAI API key.
+
 **👉 [Try the Live Demo](https://interview-prep-ai-delta.vercel.app)** - Click and start practicing immediately!
 
 > Real-time coding interview practice with AI feedback on both your code AND communication skills
@@ -12,9 +16,6 @@
 
 ## Try It Now
 
-Important: To avoid unexpected costs, the public demo does not have active API credits. As this is currently a student portfolio project, you’ll receive a friendly message about missing API credits after completing the app’s steps.
-
-I still encourage you to interact with the demo to understand its intended workflow and share your feedback. For a fully working experience, simply clone the repo and run it locally using your own OpenAI API key.
 
 **[Launch the app →](https://interview-prep-ai-delta.vercel.app)**
 
@@ -26,9 +27,9 @@ I still encourage you to interact with the demo to understand its intended workf
 
 ##  What Problem Does This Solve?
 
-**LeetCode teaches how to code. This teaches you how to interview.**
+LeetCode teaches how to code. This teaches you how to interview.
 
-Some of the best leedcoders I know use pen (or pencil) and paper to design a strategy before writing any actual line of code for a leetcode problem. This beta-version of InterviewPrep AI (with loaded API credits) has that pen/pencil and paper integrated in it. It trains coders who struggle with explaining their code to become more confident in their "communication" abilities in order to pass technical interviews. It does that through the "explain your strategy feature." At the end, it gives feedback both on the code but also how well you communicated your strategy before writing the code. 
+Some of the best leedcoders I know use pen (or pencil) and paper to design a strategy before writing any actual line of code for a leetcode problem. This beta-version of InterviewPrep AI (with loaded API credits) has that pen/pencil and paper integrated in it. It trains coders who struggle with explaining their code to become more confident in their "communication" abilities in order to pass technical interviews. It does that through the "explain your strategy feature." At the end, it gives feedback both on the code but also how well you communicated your strategy before writing the code.
 
 
 ---
@@ -112,15 +113,6 @@ Open `http://localhost:5173` and experience the full AI-powered interview coach!
 - Frontend: Vercel (auto-deploy from GitHub)
 - Backend: Render (containerized Python app)
 - Environment variables for API key security
-
----
-
-##  About OpenAI API Costs
-
-### Why No API Key in the Live Demo?
-
-As a student portfolio project, for financial reason, I could not to load API credits for the public demo to avoid unexpected costs from random traffic. 
-
 
 ---
 
