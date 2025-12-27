@@ -1,5 +1,4 @@
 import os
-import time
 import json
 import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -7,85 +6,62 @@ from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
 from dotenv import load_dotenv
 
+# Load variables from .env
 load_dotenv()
+
+# Setup Gemini
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=GEMINI_API_KEY)
+# Using Gemini 2.0 Flash for low latency (perfect for voice)
+model = genai.GenerativeModel('gemini-2.0-flash-exp') 
 
 app = FastAPI()
 
-# Enable CORS
+# Setup CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend URL
+    allow_origins=["*"], # For development, allows your frontend to connect
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Setup Gemini
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    print("WARNING: GEMINI_API_KEY not found in env variables!")
-
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-2.0-flash-exp') 
-# Note: If 2.0-flash-exp isn't available in your region yet, use 'gemini-1.5-flash'
-
-@app.get("/")
-def read_root():
-    return {"status": "Interview AI Backend is Running"}
-
-@app.websocket("/ws")
+@app.websocket("/ws/hints")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    print("Client connected")
+    print("Client connected to voice coach")
     
-    # Session history to keep the AI consistent
-    chat_session = model.start_chat(history=[])
+    # We start a chat session to keep context of the hints
+    chat = model.start_chat(history=[])
     
-    # System Prompt to set the AI's behavior
-    system_instruction = """
-    You are a supportive coding interviewer. 
-    The user is solving a coding problem and speaking out loud.
-    The user has stopped speaking (silence detected), implying they are stuck.
-    
-    Based on their Code and their recent Speech:
-    1. Give a SHORT, subtle hint. Do not give the answer.
-    2. Guide them on their logic, not just syntax.
-    3. Keep it under 2 sentences.
-    4. If they seem to be doing well, just say "You're doing great, keep going."
-    """
+    system_prompt = (
+        "You are a coding interview coach. The user is solving a problem and speaking aloud. "
+        "They have paused, which means they are stuck. Provide a SHORT (1-2 sentence) hint. "
+        "Do not give the code solution. Just guide their thinking."
+    )
 
     try:
         while True:
-            # Wait for data from frontend
+            # Receive data from frontend
             data = await websocket.receive_text()
             payload = json.loads(data)
             
-            problem_statement = payload.get("problem", "")
-            code_content = payload.get("code", "")
+            problem = payload.get("problem", "")
+            code_so_far = payload.get("code", "")
             transcript = payload.get("transcript", "")
 
-            print(f"Analyzing silence... Transcript: {transcript}")
+            full_prompt = (
+                f"{system_prompt}\n\n"
+                f"Problem: {problem}\n"
+                f"Current Code:\n{code_so_far}\n"
+                f"User's last thoughts: {transcript}"
+            )
 
-            # Construct the prompt for Gemini
-            user_message = f"""
-            System Instruction: {system_instruction}
+            # Get hint from Gemini
+            response = chat.send_message(full_prompt)
             
-            Current Problem: {problem_statement}
-            User's Code So Far: 
-            ```
-            {code_content}
-            ```
-            User's Recent Speech (last few seconds): "{transcript}"
-            """
-
-            # Call Gemini
-            # We use `generate_content` (stateless) or chat_session.send_message
-            # Using chat session to remember previous hints
-            response = chat_session.send_message(user_message)
-            hint = response.text
-
             # Send back to frontend
-            await websocket.send_json({"type": "hint", "message": hint})
+            await websocket.send_json({"hint": response.text})
 
     except WebSocketDisconnect:
         print("Client disconnected")
