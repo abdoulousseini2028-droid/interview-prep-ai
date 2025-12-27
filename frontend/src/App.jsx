@@ -20,32 +20,30 @@ function App() {
 
   // Setup WebSocket and Speech Recognition
   useEffect(() => {
-    const ws = new WebSocket(WS_URL);
-    ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      if (data.hint) {
-        setHints(prev => [{text: data.hint, time: new Date().toLocaleTimeString()}, ...prev]);
-        // VOICE SUGGESTION
-        const utterance = new SpeechSynthesisUtterance(data.hint);
-        window.speechSynthesis.speak(utterance);
+  const interval = setInterval(() => {
+    const timeSinceLastSpeech = Date.now() - lastSpoken;
+    
+    // 12000ms = 12 seconds of silence
+    if (isListening && timeSinceLastSpeech > 12000 && transcriptRef.current.trim().length > 2) {
+      console.log("Silence detected. Sending to AI...");
+      
+      if (socket?.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ 
+          transcript: transcriptRef.current, 
+          problem: problem,
+          code: code 
+        }));
+        
+        // Clear the transcript so it doesn't repeat the same hint
+        transcriptRef.current = ""; 
+        setLiveTranscript("");
+        setLastSpoken(Date.now()); 
       }
-    };
-    setSocket(ws);
-
-    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.onresult = (event) => {
-        setLastSpoken(Date.now());
-        const current = Array.from(event.results).map(r => r[0].transcript).join("");
-        setLiveTranscript(current); // Shows user their words
-        transcriptRef.current = current;
-      };
-      recognitionRef.current = recognition;
     }
-  }, []);
+  }, 1000); // Check every second
+
+  return () => clearInterval(interval);
+}, [isListening, lastSpoken, socket, problem, code]);
 
   // SMART PROBLEM RECOGNITION (Voice Welcome)
   const handleProblemBlur = () => {
