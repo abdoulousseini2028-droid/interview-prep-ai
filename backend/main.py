@@ -5,6 +5,30 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
 from dotenv import load_dotenv
+from pydantic import BaseModel
+import sys
+import io
+
+class CodeRequest(BaseModel):
+    code: str
+    language: str
+
+@app.post("/run")
+async def run_code(request: CodeRequest):
+    # This captures the output of the Python code
+    output_capture = io.StringIO()
+    sys.stdout = output_capture
+    
+    try:
+        # EXECUTE the code (Python only for now)
+        exec(request.code)
+        result = output_capture.getvalue()
+    except Exception as e:
+        result = str(e)
+    finally:
+        sys.stdout = sys.__stdout__
+        
+    return {"output": result}
 
 # Load variables from .env
 load_dotenv()
@@ -67,3 +91,4 @@ async def websocket_endpoint(websocket: WebSocket):
         print("Client disconnected")
     except Exception as e:
         print(f"Error: {e}")
+        
