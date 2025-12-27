@@ -2,7 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { Mic, MicOff, Terminal, Play, MessageSquare, User } from 'lucide-react';
 
+// Make sure this is the exact link that showed the "backend is running" message
 const BASE_URL = "https://musical-space-spork-4jpqwr54rw6ph7vx6-8000.app.github.dev";
+
+// The WebSocket URL just changes the beginning to 'wss'
 const WS_URL = "wss://musical-space-spork-4jpqwr54rw6ph7vx6-8000.app.github.dev/ws/hints";
 
 function App() {
