@@ -1,94 +1,71 @@
 import os
 import json
-import asyncio
+import io
+import sys
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import google.generativeai as genai
 from dotenv import load_dotenv
-from pydantic import BaseModel
-import sys
-import io
 
-class CodeRequest(BaseModel):
-    code: str
-    language: str
-
-@app.post("/run")
-async def run_code(request: CodeRequest):
-    # This captures the output of the Python code
-    output_capture = io.StringIO()
-    sys.stdout = output_capture
-    
-    try:
-        # EXECUTE the code (Python only for now)
-        exec(request.code)
-        result = output_capture.getvalue()
-    except Exception as e:
-        result = str(e)
-    finally:
-        sys.stdout = sys.__stdout__
-        
-    return {"output": result}
-
-# Load variables from .env
 load_dotenv()
 
 # Setup Gemini
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_API_KEY)
-# Using Gemini 2.0 Flash for low latency (perfect for voice)
-model = genai.GenerativeModel('gemini-2.0-flash-exp') 
+api_key = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 app = FastAPI()
 
-# Setup CORS
+# Setup CORS - Allow everything for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # For development, allows your frontend to connect
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+class CodeRequest(BaseModel):
+    code: str
+
+# --- ROUTE 1: RUN CODE ---
+@app.post("/run")
+async def execute_code(request: CodeRequest):
+    output_capture = io.StringIO()
+    sys.stdout = output_capture
+    error = None
+    
+    try:
+        # Warning: exec() is for local learning projects only!
+        exec(request.code, {"__builtins__": __builtins__}, {})
+    except Exception as e:
+        error = str(e)
+    finally:
+        sys.stdout = sys.__stdout__
+        
+    result = output_capture.getvalue()
+    return {"output": result if not error else f"Error: {error}"}
+
+# --- ROUTE 2: AI VOICE HINTS ---
 @app.websocket("/ws/hints")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    print("Client connected to voice coach")
-    
-    # We start a chat session to keep context of the hints
-    chat = model.start_chat(history=[])
-    
-    system_prompt = (
-        "You are a coding interview coach. The user is solving a problem and speaking aloud. "
-        "They have paused, which means they are stuck. Provide a SHORT (1-2 sentence) hint. "
-        "Do not give the code solution. Just guide their thinking."
-    )
-
     try:
         while True:
-            # Receive data from frontend
             data = await websocket.receive_text()
             payload = json.loads(data)
             
+            user_speech = payload.get("transcript", "")
             problem = payload.get("problem", "")
-            code_so_far = payload.get("code", "")
-            transcript = payload.get("transcript", "")
-
-            full_prompt = (
-                f"{system_prompt}\n\n"
-                f"Problem: {problem}\n"
-                f"Current Code:\n{code_so_far}\n"
-                f"User's last thoughts: {transcript}"
-            )
-
-            # Get hint from Gemini
-            response = chat.send_message(full_prompt)
             
-            # Send back to frontend
+            prompt = (
+                f"User is solving: {problem}. "
+                f"They just said: '{user_speech}'. "
+                f"Give a 1-sentence helpful hint. No code."
+            )
+            
+            response = model.generate_content(prompt)
             await websocket.send_json({"hint": response.text})
-
     except WebSocketDisconnect:
-        print("Client disconnected")
-    except Exception as e:
-        print(f"Error: {e}")
-        
+        pass
