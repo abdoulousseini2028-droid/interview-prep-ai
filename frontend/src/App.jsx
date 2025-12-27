@@ -76,19 +76,26 @@ function App() {
   }, [isListening, lastSpoken, socket, problem, code]);
 
   const handleRunCode = async () => {
-    setOutput("Processing output...");
-    try {
-      const res = await fetch(`${BASE_URL}/run`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code })
-      });
-      const data = await res.json();
-      setOutput(data.output || "Code executed (no output).");
-    } catch (err) {
-      setOutput("Error: Backend unreachable. Ensure the -8000 link is 'Authorized'.");
-    }
-  };
+  setOutput("Running code...");
+  try {
+    const res = await fetch(`${BASE_URL}/run`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json" 
+      },
+      body: JSON.stringify({ code })
+    });
+    
+    if (!res.ok) throw new Error(`Server status: ${res.status}`);
+    
+    const data = await res.json();
+    setOutput(data.output || "Code executed successfully.");
+  } catch (err) {
+    console.error("Run Error:", err);
+    setOutput(`Error: ${err.message}. Check if Port 8000 is PUBLIC.`);
+  }
+};
 
   return (
     <div className="flex h-screen bg-black text-white font-sans overflow-hidden">
