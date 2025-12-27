@@ -5,25 +5,25 @@ import sys
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import google.generativeai as genai
+from google import genai  # Use the new library
 from dotenv import load_dotenv
 import uvicorn
 
 load_dotenv()
 
-# Setup
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Setup New Gemini Client
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = FastAPI()
 
-# Force CORS to be wide open
+# Wide open CORS to fix the "Load Failed" error
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 class CodeRequest(BaseModel):
@@ -31,7 +31,7 @@ class CodeRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"status": "LIVE", "message": "The backend is working!"}
+    return {"status": "LIVE", "message": "Backend is active!"}
 
 @app.post("/run")
 async def execute_code(request: CodeRequest):
@@ -44,8 +44,23 @@ async def execute_code(request: CodeRequest):
         result = str(e)
     finally:
         sys.stdout = sys.__stdout__
-    return {"output": result}
+    return {"output": result if result.strip() else "Executed successfully (no print output)."}
 
-# This part makes the file run itself
+@app.websocket("/ws/hints")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            payload = json.loads(data)
+            response = client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=f"Hint for: {payload.get('problem')}. Said: {payload.get('transcript')}. 1 sentence hint."
+            )
+            await websocket.send_json({"hint": response.text})
+    except:
+        pass
+
+# THIS PART KEEPS THE SERVER RUNNING
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
