@@ -1,377 +1,93 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional, List, Dict
-from openai import OpenAI
 import os
+import time
 import json
 import asyncio
-from datetime import datetime
-import uuid
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+import google.generativeai as genai
+from dotenv import load_dotenv
 
-app = FastAPI(title="AI Interview Prep API")
+load_dotenv()
 
-# CORS middleware for frontend connection
+app = FastAPI()
+
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://interview-prep-ai-delta.vercel.app",
-        "https://*.vercel.app"
-    ],
+    allow_origins=["*"],  # In production, specify your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize OpenAI client (optional - will return friendly error if not set)
-try:
-    client = OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY", "dummy-key-for-demo")
-    )
-except Exception:
-    client = None
+# Setup Gemini
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    print("WARNING: GEMINI_API_KEY not found in env variables!")
 
-# In-memory session storage (use DB in production)
-sessions: Dict[str, Dict] = {}
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-2.0-flash-exp') 
+# Note: If 2.0-flash-exp isn't available in your region yet, use 'gemini-1.5-flash'
 
-
-class CodeSubmission(BaseModel):
-    code: str
-    language: str
-    problem_description: str
-
-
-class FeedbackResponse(BaseModel):
-    technical_feedback: str
-    communication_feedback: str
-    suggestions: List[str]
-    complexity_analysis: str
-    score: int
-
-
-def analyze_code_with_ai(code: str, language: str, problem: str, conversation_history: List[Dict]) -> Dict:
-    """
-    Analyze code using OpenAI GPT-3.5 for technical correctness and complexity
-    """
-    if client is None:
-        return {
-            "technical_feedback": """Hi! I'm the AI interview coach, but I'm currently unable to analyze your code. 
-
-Here's why: This demo uses OpenAI's API which costs about $0.03 per analysis. Since this is a portfolio project displayed publicly, the creator (Abdoul) hasn't loaded API credits to avoid unexpected charges from random traffic.
-
-**But your code looks good!** I can see you're thinking about the problem. The app itself works perfectly - the WebSocket connection, code editor, and full interview flow are all production-ready.
-
-**Want to see me actually work?** 
-- Contact Abdoul at ousseiniabdoulrahim1@gmail.com for a live demo
-- Or clone the repo and add your own OpenAI API key (new accounts get $5 free credits!)
-
-This demonstrates real-world thinking about cost management in production deployments. In a real product, there would be user authentication, usage limits, and payment processing.""",
-            "complexity_analysis": "Unable to analyze without API access",
-            "code_quality": "Unable to analyze without API access",
-            "follow_up_question": "Want to see this working? Reach out to the developer!",
-            "score": 0
-        }
-    
-    system_prompt = """You are an expert technical interviewer at a top tech company. 
-    Your role is to:
-    1. Analyze code for correctness, efficiency, and best practices
-    2. Evaluate the candidate's problem-solving approach
-    3. Provide constructive feedback on both technical and communication aspects
-    4. Ask relevant follow-up questions to assess deeper understanding
-    
-    Be encouraging but honest. Focus on helping candidates improve."""
-    
-    prompt = f"""
-    Problem: {problem}
-    
-    Language: {language}
-    
-    Code submitted:
-```{language}
-    {code}
-```
-    
-    Please provide:
-    1. Technical correctness analysis (bugs, edge cases)
-    2. Time and space complexity analysis
-    3. Code quality and best practices feedback
-    4. One insightful follow-up question to test deeper understanding
-    5. Overall score out of 10
-    
-    Format your response as JSON with these keys:
-    - technical_feedback
-    - complexity_analysis  
-    - code_quality
-    - follow_up_question
-    - score (1-10)
-    """
-    
-    messages = [{"role": "system", "content": system_prompt}]
-    for msg in conversation_history:
-        messages.append(msg)
-    messages.append({"role": "user", "content": prompt})
-    
-    try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            max_tokens=2000,
-            temperature=0.7
-        )
-        
-        content = response.choices[0].message.content
-        
-        # Try to parse as JSON
-        if "```json" in content:
-            json_str = content.split("```json")[1].split("```")[0].strip()
-            return json.loads(json_str)
-        elif "```" in content:
-            json_str = content.split("```")[1].split("```")[0].strip()
-            return json.loads(json_str)
-        else:
-            return {
-                "technical_feedback": content,
-                "complexity_analysis": "See technical feedback",
-                "code_quality": "See technical feedback",
-                "follow_up_question": "Can you explain your approach?",
-                "score": 7
-            }
-    except Exception as e:
-        return {
-            "technical_feedback": "An error occurred while analyzing. Please try again.",
-            "complexity_analysis": "Unable to analyze",
-            "code_quality": "Unable to analyze",
-            "follow_up_question": "Can you try again?",
-            "score": 0
-        }
-
-    
 @app.get("/")
-async def root():
-    return {
-        "message": "AI Interview Prep API",
-        "status": "running",
-        "endpoints": {
-            "websocket": "/ws/{session_id}",
-            "health": "/health"
-        }
-    }
+def read_root():
+    return {"status": "Interview AI Backend is Running"}
 
-
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
-
-
-@app.websocket("/ws/{session_id}")
-async def websocket_endpoint(websocket: WebSocket, session_id: str):
-    """
-    WebSocket endpoint for real-time interview session
-    """
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    print("Client connected")
     
-    # Initialize session
-    if session_id not in sessions:
-        sessions[session_id] = {
-            "id": session_id,
-            "conversation_history": [],
-            "code_submissions": [],
-            "start_time": datetime.now().isoformat(),
-            "problem": None
-        }
+    # Session history to keep the AI consistent
+    chat_session = model.start_chat(history=[])
     
-    session = sessions[session_id]
+    # System Prompt to set the AI's behavior
+    system_instruction = """
+    You are a supportive coding interviewer. 
+    The user is solving a coding problem and speaking out loud.
+    The user has stopped speaking (silence detected), implying they are stuck.
     
+    Based on their Code and their recent Speech:
+    1. Give a SHORT, subtle hint. Do not give the answer.
+    2. Guide them on their logic, not just syntax.
+    3. Keep it under 2 sentences.
+    4. If they seem to be doing well, just say "You're doing great, keep going."
+    """
+
     try:
-        # Send welcome message
-        await websocket.send_json({
-            "type": "system",
-            "message": "Welcome! I'm your AI interview coach. Let's start by understanding the problem you're working on. What coding challenge would you like to practice?",
-            "timestamp": datetime.now().isoformat()
-        })
-        
         while True:
-            # Receive message from client
-            data = await websocket.receive_json()
-            message_type = data.get("type")
+            # Wait for data from frontend
+            data = await websocket.receive_text()
+            payload = json.loads(data)
             
-            if message_type == "problem_description":
-                # Store the problem
-                session["problem"] = data.get("content")
-                session["conversation_history"].append({
-                    "role": "user",
-                    "content": f"Problem: {data.get('content')}"
-                })
-                
-                await websocket.send_json({
-                    "type": "ai_response",
-                    "message": "Great! I understand the problem. Now, before you start coding, can you walk me through your approach? What's your initial strategy?",
-                    "timestamp": datetime.now().isoformat()
-                })
-                
-            elif message_type == "explanation":
-                # User explaining their approach
-                explanation = data.get("content")
-                session["conversation_history"].append({
-                    "role": "user", 
-                    "content": f"My approach: {explanation}"
-                })
-                
-                # AI provides feedback on approach
-                if client is None:
-                    ai_message = """Thanks for sharing your approach! 
+            problem_statement = payload.get("problem", "")
+            code_content = payload.get("code", "")
+            transcript = payload.get("transcript", "")
 
-Unfortunately, I can't provide AI-powered feedback right now because this demo doesn't have OpenAI API credits loaded (to avoid unexpected costs from public traffic).
+            print(f"Analyzing silence... Transcript: {transcript}")
 
-However, feel free to continue to the coding phase! The code editor and full interview flow work perfectly. When you submit your code, you'll see a detailed explanation of why the AI analysis isn't available.
-
-Want to see the full AI feedback working? Contact Abdoul at ousseiniabdoulrahim1@gmail.com or clone the repo and add your own API key!"""
-                else:
-                    try:
-                        response = client.chat.completions.create(
-                            model="gpt-3.5-turbo",
-                            messages=[
-                                {"role": "system", "content": "You are a supportive technical interviewer. Provide brief feedback on the candidate's approach and encourage them to start coding."},
-                                *session["conversation_history"]
-                            ],
-                            max_tokens=500
-                        )
-                        
-                        ai_message = response.choices[0].message.content
-                    except Exception as e:
-                        ai_message = """Thanks for sharing your approach! An error occurred while getting AI feedback. Please continue to the coding phase!"""
-                
-                session["conversation_history"].append({
-                    "role": "assistant",
-                    "content": ai_message
-                })
-                
-                await websocket.send_json({
-                    "type": "ai_response",
-                    "message": ai_message,
-                    "timestamp": datetime.now().isoformat()
-                })
-                
-            elif message_type == "code_submission":
-                # Analyze submitted code
-                code = data.get("code", "")
-                language = data.get("language", "python")
-                
-                if not code.strip():
-                    await websocket.send_json({
-                        "type": "error",
-                        "message": "Please write some code before submitting!",
-                        "timestamp": datetime.now().isoformat()
-                    })
-                    continue
-                
-                # Store submission
-                session["code_submissions"].append({
-                    "code": code,
-                    "language": language,
-                    "timestamp": datetime.now().isoformat()
-                })
-                
-                # Analyze with AI
-                await websocket.send_json({
-                    "type": "system",
-                    "message": "Analyzing your code...",
-                    "timestamp": datetime.now().isoformat()
-                })
-                
-                analysis = analyze_code_with_ai(
-                    code, 
-                    language, 
-                    session.get("problem", "coding problem"),
-                    session["conversation_history"]
-                )
-                
-                # Send detailed feedback
-                await websocket.send_json({
-                    "type": "code_analysis",
-                    "analysis": analysis,
-                    "timestamp": datetime.now().isoformat()
-                })
-                
-                # Ask follow-up question
-                if "follow_up_question" in analysis:
-                    await websocket.send_json({
-                        "type": "ai_response",
-                        "message": analysis["follow_up_question"],
-                        "timestamp": datetime.now().isoformat()
-                    })
+            # Construct the prompt for Gemini
+            user_message = f"""
+            System Instruction: {system_instruction}
             
-            elif message_type == "message":
-                # General conversation
-                user_message = data.get("content")
-                session["conversation_history"].append({
-                    "role": "user",
-                    "content": user_message
-                })
-                
-                if client is None:
-                    ai_message = """Thanks for your message! Unfortunately, AI responses aren't available in this demo without API credits. Feel free to continue with the interview flow!"""
-                else:
-                    try:
-                        response = client.chat.completions.create(
-                            model="gpt-3.5-turbo",
-                            messages=[
-                                {"role": "system", "content": "You are a helpful technical interviewer. Keep responses concise and encouraging."},
-                                *session["conversation_history"]
-                            ],
-                            max_tokens=500
-                        )
-                        
-                        ai_message = response.choices[0].message.content
-                    except Exception as e:
-                        ai_message = """Thanks for your message! An error occurred. Please continue with the interview!"""
-                
-                session["conversation_history"].append({
-                    "role": "assistant",
-                    "content": ai_message
-                })
-                
-                await websocket.send_json({
-                    "type": "ai_response",
-                    "message": ai_message,
-                    "timestamp": datetime.now().isoformat()
-                })
-            
-            elif message_type == "end_session":
-                await websocket.send_json({
-                    "type": "session_summary",
-                    "summary": "Session ended. Thank you for practicing!",
-                    "session_data": {
-                        "duration": "session duration",
-                        "submissions": len(session['code_submissions']),
-                        "timestamp": datetime.now().isoformat()
-                    }
-                })
-                break
-                
+            Current Problem: {problem_statement}
+            User's Code So Far: 
+            ```
+            {code_content}
+            ```
+            User's Recent Speech (last few seconds): "{transcript}"
+            """
+
+            # Call Gemini
+            # We use `generate_content` (stateless) or chat_session.send_message
+            # Using chat session to remember previous hints
+            response = chat_session.send_message(user_message)
+            hint = response.text
+
+            # Send back to frontend
+            await websocket.send_json({"type": "hint", "message": hint})
+
     except WebSocketDisconnect:
-        print(f"Client disconnected from session {session_id}")
+        print("Client disconnected")
     except Exception as e:
-        print(f"Error in session {session_id}: {str(e)}")
-        await websocket.send_json({
-            "type": "error",
-            "message": "An error occurred. Please try again.",
-            "timestamp": datetime.now().isoformat()
-        })
-
-
-@app.get("/sessions/{session_id}")
-async def get_session(session_id: str):
-    """
-    Retrieve session data for review
-    """
-    if session_id not in sessions:
-        raise HTTPException(status_code=404, detail="Session not found")
-    
-    return sessions[session_id]
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+        print(f"Error: {e}")
