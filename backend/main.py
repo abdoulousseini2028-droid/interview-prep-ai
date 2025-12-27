@@ -48,20 +48,19 @@ async def root():
 # --- ROUTE 1: RUN CODE ---
 @app.post("/run")
 async def execute_code(request: CodeRequest):
+    # This ensures the backend captures EVERYTHING printed
     output_capture = io.StringIO()
     sys.stdout = output_capture
-    error = None
     try:
-        # Note: exec is used for learning; use sandboxing for production.
-        exec(request.code, {"__builtins__": __builtins__}, {})
+        # Use a local dict to avoid global variable conflicts
+        local_scope = {}
+        exec(request.code, {"__builtins__": __builtins__}, local_scope)
+        result = output_capture.getvalue()
     except Exception as e:
-        error = str(e)
+        result = f"Error: {str(e)}"
     finally:
         sys.stdout = sys.__stdout__
-    
-    result = output_capture.getvalue()
-    return {"output": result if not error else f"Error: {error}"}
-
+    return {"output": result}
 # --- ROUTE 2: WEBSOCKET AI HINTS ---
 @app.websocket("/ws/hints")
 async def websocket_endpoint(websocket: WebSocket):
