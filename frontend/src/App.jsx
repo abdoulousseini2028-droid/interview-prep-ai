@@ -22,20 +22,48 @@ function App() {
   const transcriptRef = useRef("");
 
   // Setup WebSocket and Speech Recognition
+  // Setup WebSocket and Speech Recognition
   useEffect(() => {
-  const interval = setInterval(() => {
-    const timeSinceLastSpeech = Date.now() - lastSpoken;
-    
-    // 12000ms = 12 seconds of silence
-    if (isListening && timeSinceLastSpeech > 12000 && transcriptRef.current.trim().length > 2) {
-      console.log("Silence detected. Sending to AI...");
-      
-      if (socket?.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ 
-          transcript: transcriptRef.current, 
-          problem: problem,
-          code: code 
-        }));
+    // 1. Initialize Speech Recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+
+      recognitionRef.current.onresult = (event) => {
+        let interim = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            transcriptRef.current += event.results[i][0].transcript + " ";
+            setLastSpoken(Date.now());
+          } else {
+            interim += event.results[i][0].transcript;
+          }
+        }
+        setLiveTranscript(transcriptRef.current + interim);
+      };
+    }
+
+    // 2. Initialize WebSocket
+    const ws = new WebSocket(WS_URL);
+    ws.onopen = () => console.log("Connected to AI Voice Server");
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.hint) {
+        setHints(prev => [{ text: data.hint, time: new Date().toLocaleTimeString() }, ...prev]);
+        // Make the AI speak the hint
+        const utterance = new SpeechSynthesisUtterance(data.hint);
+        window.speechSynthesis.speak(utterance);
+      }
+    };
+    setSocket(ws);
+
+    return () => {
+      ws.close();
+      recognitionRef.current?.stop();
+    };
+  }, []);
         
         // Clear the transcript so it doesn't repeat the same hint
         transcriptRef.current = ""; 
