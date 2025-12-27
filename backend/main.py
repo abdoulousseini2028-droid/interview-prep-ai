@@ -18,16 +18,17 @@ genai.configure(api_key=api_key)
 model = genai.GenerativeModel(
     model_name='gemini-1.5-flash',
     system_instruction=(
-        "You are a Senior Technical Interviewer. Your goal is to guide the candidate. "
-        "Keep responses short (1-2 sentences). Speak naturally. Do not use Markdown, "
-        "asterisks, or hashtags. If they haven't spoken much, encourage them to "
-        "explain their thought process."
+        "You are a world-class Senior Technical Interviewer. "
+        "Your goal is to guide the candidate with 1-2 short sentences. "
+        "Never use Markdown, asterisks (**), or hashtags (#). "
+        "If the candidate is silent, ask them to talk through their logic. "
+        "If they are stuck, give a high-level conceptual hint, not the code."
     )
 )
 
 app = FastAPI()
 
-# ULTIMATE CORS SETUP: This helps fix the "Unreachable" error on Private Ports
+# Extreme CORS settings to bypass "Unreachable" errors
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -42,7 +43,7 @@ class CodeRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "backend is running"}
+    return {"status": "online", "message": "AI Backend is active"}
 
 # --- ROUTE 1: RUN CODE ---
 @app.post("/run")
@@ -50,19 +51,18 @@ async def execute_code(request: CodeRequest):
     output_capture = io.StringIO()
     sys.stdout = output_capture
     error = None
-    
     try:
-        # Standard exec for local dev
+        # Note: exec is used for learning; use sandboxing for production.
         exec(request.code, {"__builtins__": __builtins__}, {})
     except Exception as e:
         error = str(e)
     finally:
         sys.stdout = sys.__stdout__
-        
+    
     result = output_capture.getvalue()
     return {"output": result if not error else f"Error: {error}"}
 
-# --- ROUTE 2: AI VOICE HINTS ---
+# --- ROUTE 2: WEBSOCKET AI HINTS ---
 @app.websocket("/ws/hints")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -75,20 +75,19 @@ async def websocket_endpoint(websocket: WebSocket):
             problem = payload.get("problem", "")
             current_code = payload.get("code", "")
             
-            # The "Brain" logic
             prompt = (
                 f"Candidate is working on: {problem}. "
-                f"Current Python code: {current_code}. "
-                f"Candidate said: '{user_speech}'. "
-                "Provide a spoken hint or words of encouragement. Be brief."
+                f"Current Code: {current_code}. "
+                f"Candidate just said: '{user_speech}'. "
+                "Give a natural-sounding spoken hint."
             )
             
             response = model.generate_content(prompt)
-            # Clean up text so text-to-speech sounds natural
+            # Clean text for Text-to-Speech
             clean_hint = response.text.replace("*", "").replace("#", "").strip()
             
             await websocket.send_json({"hint": clean_hint})
     except WebSocketDisconnect:
-        print("Client disconnected")
+        print("Websocket closed")
     except Exception as e:
-        print(f"Error in websocket: {e}")
+        print(f"Error: {e}")
