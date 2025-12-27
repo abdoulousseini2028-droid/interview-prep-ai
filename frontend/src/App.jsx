@@ -3,8 +3,8 @@ import Editor from '@monaco-editor/react';
 import { Mic, MicOff, Terminal, Zap, Play } from 'lucide-react';
 
 // UPDATE THESE with your Codespace URLs from the Ports tab
-const BASE_URL = "https://your-codespace-name-8000.app.github.dev";
-const WS_URL = "wss://your-codespace-name-8000.app.github.dev/ws/hints";
+const BASE_URL = "https://musical-space-spork-4jpqwr54rw6ph7vx6-8000.app.github.dev";
+const WS_URL = "wss://musical-space-spork-4jpqwr54rw6ph7vx6-8000.app.github.dev/ws/hints";
 
 function App() {
   const [problem, setProblem] = useState("Two Sum: Find two numbers that add up to a target.");
